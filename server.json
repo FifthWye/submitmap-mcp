@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.submitmap/directory",
-  "description": "Search a curated directory of product launch platforms, work out which ones a product qualifies for, and get the brief for filling each submission form.",
+  "description": "A directory of product launch platforms: where your product qualifies and how each form is filled.",
   "repository": {
     "url": "https://github.com/FifthWye/submitmap-mcp",
     "source": "github"
