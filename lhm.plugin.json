@@ -1,0 +1,616 @@
+{
+  "author": "SubmitMap",
+  "authorUrl": "https://github.com/FifthWye",
+  "cloudEndpoint": "https://submitmap.com/api/mcp",
+  "description": "The SubmitMap launch directory over MCP. Search platforms and qualify a product anonymously; with the maker’s token, store the product, plan a run order, get the filled brief for a form and record the result.",
+  "homepage": "https://github.com/FifthWye/submitmap-mcp",
+  "icon": "🗺️",
+  "identifier": "submitmap-mcp",
+  "name": "SubmitMap",
+  "tags": [
+    "directory",
+    "launch",
+    "startup",
+    "marketing",
+    "submissions"
+  ],
+  "tools": [
+    {
+      "name": "search_platforms",
+      "description": "Search the SubmitMap directory of startup launch platforms and directories. Filter by free-text query, category, pricing, link type, backlink requirement, approval speed or domain rating, and with a token leave out the ones this project has already been sent to. This is the tool behind \"find me a small directory I can submit to right now\": it is the whole directory, so answer from it rather than from what you remember of the web. Returns summaries; call get_platform for the full record including the submission steps.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Free text matched against name, tagline and categories."
+          },
+          "category": {
+            "type": "string",
+            "description": "e.g. \"AI tools\", \"Dev tools\", \"Web apps\"."
+          },
+          "pricing": {
+            "type": "string",
+            "enum": [
+              "free",
+              "freemium",
+              "paid"
+            ]
+          },
+          "dofollow": {
+            "type": "boolean",
+            "description": "Only platforms giving a dofollow backlink."
+          },
+          "requiresBacklink": {
+            "type": "boolean",
+            "description": "Filter on whether they demand a badge/link back."
+          },
+          "maxApprovalDays": {
+            "type": "number",
+            "description": "Only platforms approving within this many days."
+          },
+          "minDomainRating": {
+            "type": "number",
+            "description": "Only platforms with at least this domain rating."
+          },
+          "maxDomainRating": {
+            "type": "number",
+            "description": "Only platforms up to this domain rating. The small, quick, unglamorous end of the directory, which is where a first submission usually belongs."
+          },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "approvalDays",
+              "domainRating"
+            ],
+            "description": "Fastest approval first (the default), or strongest domain first."
+          },
+          "limit": {
+            "type": "number",
+            "description": "Return at most this many. The count is unaffected."
+          },
+          "excludeTracked": {
+            "type": "boolean",
+            "description": "Leave out every platform this project has already been submitted to or planned for. Needs a token, and is what makes \"one I have not done yet\" answerable."
+          },
+          "projectId": {
+            "type": "string",
+            "description": "Omit it when the account has one project, which is the free tier."
+          }
+        }
+      }
+    },
+    {
+      "name": "get_platform",
+      "description": "Full record for one platform: eligibility, disqualifiers, step-by-step submission instructions, requirements, gotchas and expected outcome. With a token it also carries agentPrompt, the brief for that platform's form, and agentGotchas, the traps that only bite something filling it (a placeholder that contradicts its label, a second email input belonging to a newsletter, a honeypot); without a token both are null. For a stored project, submission_playbook returns the same brief with the values already filled in.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "description": "Platform slug, e.g. \"product-hunt\"."
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      }
+    },
+    {
+      "name": "qualify_project",
+      "description": "Given a product, work out which platforms it qualifies for right now, which it could qualify for after supplying something (with the exact list of what is missing), and which are structurally out of reach. It also hands back `recommended`: a run in the order it should be worked, already cut to what a connected account can still track, so the plan comes out of the directory rather than out of what you remember of the web. Needs no account: describe the product inline. Every field is optional and an unanswered field becomes a gap to fill rather than a rejection.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "idea",
+              "prelaunch",
+              "live",
+              "revenue"
+            ]
+          },
+          "pricingModel": {
+            "type": "string",
+            "enum": [
+              "free",
+              "freemium",
+              "paid",
+              "lifetime"
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ai",
+                "b2b",
+                "community",
+                "content",
+                "design",
+                "dev",
+                "directory",
+                "extension",
+                "free",
+                "hardware",
+                "indie",
+                "local",
+                "marketing",
+                "marketplace",
+                "mobile",
+                "no-code",
+                "open-source",
+                "prelaunch",
+                "productivity",
+                "saas",
+                "web"
+              ]
+            },
+            "description": "Every audience and form factor this product belongs to, not just the main one. A product is often several at once, and one missing tag is one directory it never hears about: a repository holding a browser extension and a web app is `extension` and `web`, and an open-source AI dev tool is `open-source`, `ai` and `dev`. Look at what the product actually ships before you answer: a manifest.json means `extension`, an ios or android target means `mobile`, a public repository means `open-source`, a workspace with several of those means all of them. Tags: ai, b2b, community, content, design, dev, directory, extension, free, hardware, indie, local, marketing, marketplace, mobile, no-code, open-source, prelaunch, productivity, saas, web."
+          },
+          "domainRating": {
+            "type": "number"
+          },
+          "monthlyTraffic": {
+            "type": "number"
+          },
+          "livePublicUrl": {
+            "type": "boolean"
+          },
+          "openSignup": {
+            "type": "boolean"
+          },
+          "pricingPage": {
+            "type": "boolean"
+          },
+          "logoSquare": {
+            "type": "boolean"
+          },
+          "coverImage": {
+            "type": "boolean"
+          },
+          "demoVideo": {
+            "type": "boolean"
+          },
+          "publicRepo": {
+            "type": "boolean"
+          },
+          "privacyPolicy": {
+            "type": "boolean"
+          },
+          "docs": {
+            "type": "boolean"
+          },
+          "payingCustomers": {
+            "type": "boolean"
+          },
+          "acceptsBacklink": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    {
+      "name": "whoami",
+      "description": "Which SubmitMap account this token belongs to, which plan it is on, and how much of the free tier is left. Call it first if you are unsure whether the maker is connected.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "list_projects",
+      "description": "The projects on this account, each with its facts (eligibility answers) and its pack (what a submission form asks for), plus what is still missing from the pack. Call it whenever the maker says \"my product\" or \"my project\" without naming one: it is how you find out which project they mean, and every other account tool takes the id it returns.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "create_project",
+      "description": "Store a product on the account. Before asking the maker anything, use what you can already see: a README, package metadata, the site's own copy and title, an assets or public folder. A maker working in their product's repository should be able to say 'add my product to SubmitMap' and get a filled-in project back, with questions only about what is genuinely not there. Fill in as much as you can, leave the rest, and come back with update_project. Facts drive what it qualifies for; the pack is what you will paste into forms later. Ask about images early: most platforms want a square logo and many want a cover, and the pack's asset fields take a local file path as readily as a URL, because a submission form uploads the file.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "pitch": {
+            "type": "string",
+            "description": "One paragraph in the maker's own words."
+          },
+          "facts": {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "idea",
+                  "prelaunch",
+                  "live",
+                  "revenue"
+                ]
+              },
+              "pricingModel": {
+                "type": "string",
+                "enum": [
+                  "free",
+                  "freemium",
+                  "paid",
+                  "lifetime"
+                ]
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "ai",
+                    "b2b",
+                    "community",
+                    "content",
+                    "design",
+                    "dev",
+                    "directory",
+                    "extension",
+                    "free",
+                    "hardware",
+                    "indie",
+                    "local",
+                    "marketing",
+                    "marketplace",
+                    "mobile",
+                    "no-code",
+                    "open-source",
+                    "prelaunch",
+                    "productivity",
+                    "saas",
+                    "web"
+                  ]
+                },
+                "description": "Every audience and form factor this product belongs to, not just the main one. A product is often several at once, and one missing tag is one directory it never hears about: a repository holding a browser extension and a web app is `extension` and `web`, and an open-source AI dev tool is `open-source`, `ai` and `dev`. Look at what the product actually ships before you answer: a manifest.json means `extension`, an ios or android target means `mobile`, a public repository means `open-source`, a workspace with several of those means all of them. Tags: ai, b2b, community, content, design, dev, directory, extension, free, hardware, indie, local, marketing, marketplace, mobile, no-code, open-source, prelaunch, productivity, saas, web."
+              }
+            },
+            "description": "Same shape qualify_project takes: stage, pricingModel, categories, and the booleans."
+          },
+          "pack": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Exactly as it should appear in a listing. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "url": {
+                "type": "string",
+                "description": "The page a visitor lands on, not a waitlist."
+              },
+              "contactEmail": {
+                "type": "string",
+                "description": "The address you submit under. Most forms ask for one, and it is where the confirmation link lands, so a mailbox nobody opens stalls the submission. Per product, not per person: a client launch and a side project rarely want the same address, and the one you use here is the one the listing belongs to. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "tagline": {
+                "type": "string",
+                "description": "One line, no product name, no full stop. Max 60 characters. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "oneLiner": {
+                "type": "string",
+                "description": "A sentence that works as a meta description. Max 140 characters. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "shortDescription": {
+                "type": "string",
+                "description": "The paragraph most directory forms ask for. Max 260 characters. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "longDescription": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Two or three paragraphs, for the forms with room. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Three at most, in the platform's own vocabulary where it has one. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "pricing": {
+                "type": "string",
+                "description": "What it costs, in a sentence a form can take. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "makerBio": {
+                "type": "string",
+                "description": "Asked for by launch platforms, not by plain directories. Max 160 characters. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "firstComment": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Product Hunt and Show HN only, and it matters there. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "logoUrl": {
+                "type": "string",
+                "description": "Square, transparent, 512px or better. A URL, or the path to the file on the machine your agent runs on."
+              },
+              "coverUrl": {
+                "type": "string",
+                "description": "1270x760, the size every gallery accepts. A URL or a local path."
+              },
+              "galleryUrls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Three to five, first one a poster slide. URLs or local paths. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "demoVideoUrl": {
+                "type": "string",
+                "description": "Optional almost everywhere, decisive on a few. A URL or a local path."
+              }
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "update_project",
+      "description": "Fill in or correct a stored project. Facts and pack are merged into what is there, so you can add one field at a time as the maker answers.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Omit it when the account has one project, which is the free tier."
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "pitch": {
+            "type": "string"
+          },
+          "facts": {
+            "type": "object"
+          },
+          "pack": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Exactly as it should appear in a listing. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "url": {
+                "type": "string",
+                "description": "The page a visitor lands on, not a waitlist."
+              },
+              "contactEmail": {
+                "type": "string",
+                "description": "The address you submit under. Most forms ask for one, and it is where the confirmation link lands, so a mailbox nobody opens stalls the submission. Per product, not per person: a client launch and a side project rarely want the same address, and the one you use here is the one the listing belongs to. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "tagline": {
+                "type": "string",
+                "description": "One line, no product name, no full stop. Max 60 characters. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "oneLiner": {
+                "type": "string",
+                "description": "A sentence that works as a meta description. Max 140 characters. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "shortDescription": {
+                "type": "string",
+                "description": "The paragraph most directory forms ask for. Max 260 characters. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "longDescription": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Two or three paragraphs, for the forms with room. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Three at most, in the platform's own vocabulary where it has one. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "pricing": {
+                "type": "string",
+                "description": "What it costs, in a sentence a form can take. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "makerBio": {
+                "type": "string",
+                "description": "Asked for by launch platforms, not by plain directories. Max 160 characters. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "firstComment": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Product Hunt and Show HN only, and it matters there. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "logoUrl": {
+                "type": "string",
+                "description": "Square, transparent, 512px or better. A URL, or the path to the file on the machine your agent runs on."
+              },
+              "coverUrl": {
+                "type": "string",
+                "description": "1270x760, the size every gallery accepts. A URL or a local path."
+              },
+              "galleryUrls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Three to five, first one a poster slide. URLs or local paths. Write it as the maker would: no em dashes, which read as machine-written and get the whole listing dismissed. Use a comma, a colon, a semicolon, brackets or a full stop instead."
+              },
+              "demoVideoUrl": {
+                "type": "string",
+                "description": "Optional almost everywhere, decisive on a few. A URL or a local path."
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "submission_playbook",
+      "description": "Everything needed to submit a stored project to one platform, yourself, in the maker's browser: a preflight of what is still missing, the sign-in plan (on the first submission it carries a question for the maker: hand every login back to them, or use the Google address they write out, which you then pass back as signInAs), the pack values mapped onto the fields the form asks for, the steps, the gotchas, the agentGotchas (traps in the form itself), and the call to make afterwards. Read the preflight before opening a tab.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Omit it when the account has one project, which is the free tier."
+          },
+          "platformSlug": {
+            "type": "string"
+          },
+          "signInAs": {
+            "type": "string",
+            "description": "The Google address the maker wrote out when they agreed you could sign in for them on this project. Pass it on every call after they say it, so the answer travels with the work instead of living in your head. It belongs to one project: on a different one, ask again rather than sending the address you were given for the last. Leave it out if they have not written one: sign-in then goes back to them, which is the safe end."
+          }
+        },
+        "required": [
+          "platformSlug"
+        ]
+      }
+    },
+    {
+      "name": "record_submission",
+      "description": "Log what happened to the dashboard: the listing URL, when it was sent, when it goes live. Call it as soon as a submission lands, including when it is only queued for review, and including when you are not sure it landed: that is what `attempted` is for. Planning costs nothing; this is the call that spends a tracked platform on the free plan, and it spends it once, for good, so an unrecorded submission is the expensive mistake here, not a recorded uncertainty.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Omit it when the account has one project, which is the free tier."
+          },
+          "platformSlug": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "planned",
+              "attempted",
+              "submitted",
+              "live",
+              "rejected",
+              "needs_changes"
+            ],
+            "description": "Use `attempted` when the form was sent and you cannot prove it arrived: the tab died, the connection dropped, the page never came back. It is not a lesser `submitted`, it is the honest one, and it carries the verification the platform record describes so somebody can settle it later. Never re-send a form to find out; every platform has a way to check without submitting twice."
+          },
+          "listingUrl": {
+            "type": "string",
+            "description": "The product's URL on that platform."
+          },
+          "submittedAt": {
+            "type": "string",
+            "description": "ISO 8601."
+          },
+          "launchAt": {
+            "type": "string",
+            "description": "ISO 8601, if it is scheduled."
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "platformSlug",
+          "status"
+        ]
+      }
+    },
+    {
+      "name": "plan_submissions",
+      "description": "Write the run order for a project: which platforms, in what sequence, and why each one is where it is. Pass the platforms in the order they should be worked, with a short reason on each, plus a summary of the strategy. The plan appears on the maker's dashboard as a checklist that ticks itself off as submissions land. Anything already tracked is reordered rather than reset. Call it after qualify_project, using the `recommended` list it hands back. A plan costs nothing on any plan: what the free tier meters is tracked submissions, spent when an outcome is recorded, so the order you write here is the decision about where a limited budget goes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Omit it when the account has one project, which is the free tier."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Why this order, in a sentence or two. The maker reads this."
+          },
+          "checklist": {
+            "type": "array",
+            "description": "What the maker has to prepare before any of this can be submitted: the gallery, the demo video, a privacy policy page, a launch date. Write it from what the platforms in this plan actually demand and what the project is missing, not from a generic template. The maker ticks these off or throws them away on their dashboard, and anything they have already decided on keeps that decision when you plan again.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "Short and doable, as an instruction."
+                },
+                "detail": {
+                  "type": "string",
+                  "description": "The specifics: sizes, lengths, why."
+                }
+              },
+              "required": [
+                "title"
+              ]
+            }
+          },
+          "items": {
+            "type": "array",
+            "description": "In the order they should be submitted. First is next.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "platformSlug": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "Why this platform, and why here in the order."
+                }
+              },
+              "required": [
+                "platformSlug"
+              ]
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      }
+    },
+    {
+      "name": "list_submissions",
+      "description": "Where every submission for a project stands: what went out, when, what came back, and what is still waiting. This is the tool behind \"check my submissions\", \"what did I submit\", \"did I ever submit to that one\" and \"how is my launch going\", so answer those from here instead of asking the maker to remember. Start with list_projects if they have not named a project.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Omit it when the account has one project, which is the free tier."
+          }
+        }
+      }
+    }
+  ],
+  "version": "2.0.0"
+}
